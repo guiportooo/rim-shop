@@ -78,6 +78,37 @@ public static class Endpoints
             .Produces(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
+        
+        endpoints
+            .MapPut("/orders/{id}/items", async (int id,
+                UpdateOrderItemsRequest request,
+                IValidator<UpdateOrderItemsRequest> validator,
+                IMediator mediator,
+                IMapper mapper) =>
+            {
+                var result = await validator.ValidateAsync(request);
+
+                if (!result.IsValid)
+                {
+                    return Results.ValidationProblem(result.ToDictionary());
+                }
+
+                var items = mapper.Map<IEnumerable<Item>>(request.Items);
+                var command = new UpdateOrderItems(id, items);
+
+                try
+                {
+                    await mediator.Send(command);
+                    return Results.Ok();
+                }
+                catch (OrderNotFoundException e)
+                {
+                    return Results.Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
+                }
+            })
+            .Produces(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         return endpoints;
     }

@@ -9,7 +9,6 @@ public class Mappings : Profile
     public Mappings()
     {
         CreateMap<CreateOrderRequest, CreateOrder>();
-        CreateMap<UpdateOrderDeliveryAddressRequest, UpdateOrderDeliveryAddress>();
         CreateMap<DeliveryAddressRequest, DeliveryAddress>();
         CreateMap<ItemRequest, Item>();
         CreateMap<CreateOrder, Order>();
