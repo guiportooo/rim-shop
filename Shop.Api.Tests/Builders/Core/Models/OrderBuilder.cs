@@ -7,6 +7,7 @@ public sealed class OrderBuilder : AutoFaker<Order>
     public OrderBuilder() : base("en_US")
     {
         RuleFor(x => x.Id, 0);
+        RuleFor(x => x.Status, OrderStatus.Pending);
     }
 
     public OrderBuilder WithDeliveryAddress(DeliveryAddress deliveryAddress)
@@ -24,6 +25,12 @@ public sealed class OrderBuilder : AutoFaker<Order>
     public OrderBuilder WithOneItem()
     {
         RuleFor(x => x.Items, f => new ItemBuilder().Build(1));
+        return this;
+    }
+
+    public OrderBuilder Cancelled()
+    {
+        RuleFor(x => x.Status, OrderStatus.Cancelled);
         return this;
     }
 

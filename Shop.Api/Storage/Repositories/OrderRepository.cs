@@ -11,12 +11,14 @@ public class OrderRepository : IOrderRepository
 
     public async Task<Order?> Get(int id) => await _dbContext
         .Orders
+        .Where(x => x.Status != OrderStatus.Cancelled)
         .Include(x => x.DeliveryAddress)
         .Include(x => x.Items)
         .FirstOrDefaultAsync(x => x.Id == id);
     
     public async Task<IEnumerable<Order>> Get(int pageNumber, int pageSize) => await _dbContext
         .Orders
+        .Where(x => x.Status != OrderStatus.Cancelled)
         .Include(x => x.DeliveryAddress)
         .Include(x => x.Items)
         .Skip((pageNumber - 1) * pageSize)

@@ -1,9 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using Shop.Api.Core.Commands;
 using Shop.Api.HttpIn.Requests;
 using Shop.Api.HttpIn.Responses;
 using Shop.Api.HttpIn.Validations;
-using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace Shop.Api.HttpIn;
 
@@ -28,9 +26,9 @@ public static class Endpoints
             .WithName("get-order")
             .Produces(StatusCodes.Status200OK, typeof(OrderResponse))
             .ProducesProblem(StatusCodes.Status404NotFound);
-        
+
         endpoints
-            .MapGet("/orders", async ([FromQuery]int pageNumber, [FromQuery]int pageSize, IMediator mediator) =>
+            .MapGet("/orders", async ([FromQuery] int pageNumber, [FromQuery] int pageSize, IMediator mediator) =>
             {
                 var query = new GetOrders(pageNumber, pageSize);
                 var orders = (await mediator.Send(query)).ToList();
@@ -88,7 +86,7 @@ public static class Endpoints
                     return Results.Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
                 }
             })
-            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status200OK)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -119,7 +117,26 @@ public static class Endpoints
                     return Results.Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
                 }
             })
-            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        endpoints
+            .MapDelete("/orders/{id}", async (int id, IMediator mediator) =>
+            {
+                var command = new CancelOrder(id);
+
+                try
+                {
+                    await mediator.Send(command);
+                    return Results.Ok();
+                }
+                catch (OrderNotFoundException e)
+                {
+                    return Results.Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
+                }
+            })
+            .Produces(StatusCodes.Status200OK)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
 

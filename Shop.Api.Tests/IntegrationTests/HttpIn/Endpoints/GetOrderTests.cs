@@ -38,6 +38,7 @@ public class GetOrderTests
            'data': {{
             'order': {{
                 'id': {order.Id},
+                'status': 'Pending',
                 'deliveryAddress': {{
                     'id': {deliveryAddress.Id},
                     'street': '{deliveryAddress.Street}',

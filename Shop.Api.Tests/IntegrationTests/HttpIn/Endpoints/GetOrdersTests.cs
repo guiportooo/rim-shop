@@ -53,6 +53,7 @@ public class GetOrdersTests
            'data': {{
             'orders': [{{
                 'id': {firstOrder.Id},
+                'status': 'Pending',
                 'deliveryAddress': {{
                     'id': {firstDeliveryAddress.Id},
                     'street': '{firstDeliveryAddress.Street}',
@@ -67,6 +68,7 @@ public class GetOrdersTests
                     }}]
                 }}, {{
                 'id': {secondOrder.Id},
+                'status': 'Pending',
                 'deliveryAddress': {{
                     'id': {secondDeliveryAddress.Id},
                     'street': '{secondDeliveryAddress.Street}',

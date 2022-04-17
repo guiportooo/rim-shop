@@ -11,5 +11,6 @@ public class GetOrderByIdHandler : IRequestHandler<GetOrderById, Order?>
 
     public GetOrderByIdHandler(IOrderRepository repository) => _repository = repository;
 
-    public Task<Order?> Handle(GetOrderById query, CancellationToken cancellationToken) => _repository.Get(query.Id);
+    public async Task<Order?> Handle(GetOrderById query, CancellationToken cancellationToken) =>
+        await _repository.Get(query.Id);
 }

@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .Services
+    .Configure<JsonOptions>(opt => opt.SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .AddEndpointsApiExplorer()
     .AddSwaggerGen()
     .AddMediatR(Assembly.GetExecutingAssembly())
@@ -25,4 +26,6 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-public partial class Program {}
+public partial class Program
+{
+}

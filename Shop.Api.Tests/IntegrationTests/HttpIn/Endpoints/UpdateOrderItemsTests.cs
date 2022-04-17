@@ -57,7 +57,6 @@ public class UpdateOrderItemsTests
         createdOrder.Items.Should().BeEquivalentTo(newItems);
     }
 
-
     [Test]
     public async Task Should_return_bad_request_when_request_is_invalid()
     {

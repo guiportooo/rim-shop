@@ -50,7 +50,6 @@ public class UpdateOrderDeliveryAddressTests
         createdOrder.DeliveryAddress.Should().BeEquivalentTo(newDeliveryAddress);
     }
 
-
     [Test]
     public async Task Should_return_bad_request_when_request_is_invalid()
     {

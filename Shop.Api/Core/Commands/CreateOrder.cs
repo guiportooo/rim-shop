@@ -19,6 +19,7 @@ public class CreateOrderHandler : IRequestHandler<CreateOrder, int>
     public async Task<int> Handle(CreateOrder command, CancellationToken cancellationToken)
     {
         var order = _mapper.Map<Order>(command);
+        order.Status = OrderStatus.Pending;
         await _repository.Add(order);
         return order.Id;
     }

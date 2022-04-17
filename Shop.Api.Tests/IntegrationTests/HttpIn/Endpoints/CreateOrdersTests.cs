@@ -43,6 +43,7 @@ public class CreateOrdersTests
 
         var expectedCreatedOrder = new Order
         {
+            Status = OrderStatus.Pending,
             DeliveryAddress = new DeliveryAddress(request.DeliveryAddress.Street,
                 request.DeliveryAddress.City,
                 request.DeliveryAddress.PostCode),
