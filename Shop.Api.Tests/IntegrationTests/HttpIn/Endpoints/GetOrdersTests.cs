@@ -1,24 +1,21 @@
 namespace Shop.Api.Tests.IntegrationTests.HttpIn.Endpoints;
 
+using System.Linq;
 using Builders.Core.Models;
 using Storage;
 
 public class GetOrdersTests
 {
     [Test]
-    public async Task Should_return_order_with_id()
+    public async Task Should_return_paginated_orders()
     {
-        var deliveryAddress = new DeliveryAddressBuilder().Build();
+        const int pageNumber = 4;
+        const int pageSize = 2;
 
-        var items = new[]
-        {
-            new ItemBuilder().Build()
-        };
-
-        var order = new OrderBuilder()
-            .WithDeliveryAddress(deliveryAddress)
-            .WithItems(items)
-            .Build();
+        var orders = new OrderBuilder()
+            .WithOneItem()
+            .Build(10)
+            .ToList();
 
         await using var application = new ShopApi();
         var client = application.CreateClient();
@@ -27,30 +24,62 @@ public class GetOrdersTests
         await using var arrangeDbContext = arrangeScope.ServiceProvider.GetRequiredService<ShopDbContext>();
         await arrangeDbContext.Database.EnsureCreatedAsync();
 
-        arrangeDbContext.Orders.Add(order);
+        arrangeDbContext.Orders.AddRange(orders);
         await arrangeDbContext.SaveChangesAsync();
 
-        var response = await client.GetAsync($"orders/{order.Id}");
+        var response = await client.GetAsync($"orders?pageNumber={pageNumber}&pageSize={pageSize}");
 
         var responseContent = JToken.Parse(await response.Content.ReadAsStringAsync());
 
+        using var assertScope = application.Services.CreateScope();
+        await using var assertDbContext = assertScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await assertDbContext.Database.EnsureCreatedAsync();
+
+        var createdOrder = await assertDbContext
+            .Orders
+            .Include(x => x.DeliveryAddress)
+            .Include(x => x.Items)
+            .FirstAsync();
+
+        var firstOrder = orders[6];
+        var firstDeliveryAddress = firstOrder.DeliveryAddress;
+        var firstItem = firstOrder.Items.First();
+
+        var secondOrder = orders[7];
+        var secondDeliveryAddress = secondOrder.DeliveryAddress;
+        var secondItem = secondOrder.Items.First();
+
         var expectedContent = JToken.Parse($@"{{
            'data': {{
-            'order': {{
-                'id': {order.Id},
+            'orders': [{{
+                'id': {firstOrder.Id},
                 'deliveryAddress': {{
-                    'id': {deliveryAddress.Id},
-                    'street': '{deliveryAddress.Street}',
-                    'city': '{deliveryAddress.City}',
-                    'postCode': '{deliveryAddress.PostCode}'
+                    'id': {firstDeliveryAddress.Id},
+                    'street': '{firstDeliveryAddress.Street}',
+                    'city': '{firstDeliveryAddress.City}',
+                    'postCode': '{firstDeliveryAddress.PostCode}'
                 }},
                 'items': [
                     {{
-                        'id': {items[0].Id},
-                        'productId': '{items[0].ProductId}',
-                        'quantity': {items[0].Quantity}
+                        'id': {firstItem.Id},
+                        'productId': '{firstItem.ProductId}',
+                        'quantity': {firstItem.Quantity}
                     }}]
-                }}
+                }}, {{
+                'id': {secondOrder.Id},
+                'deliveryAddress': {{
+                    'id': {secondDeliveryAddress.Id},
+                    'street': '{secondDeliveryAddress.Street}',
+                    'city': '{secondDeliveryAddress.City}',
+                    'postCode': '{secondDeliveryAddress.PostCode}'
+                }},
+                'items': [
+                    {{
+                        'id': {secondItem.Id},
+                        'productId': '{secondItem.ProductId}',
+                        'quantity': {secondItem.Quantity}
+                    }}]
+                }}]
             }}}}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -58,22 +87,37 @@ public class GetOrdersTests
     }
 
     [Test]
-    public async Task Should_return_not_found_when_order_does_not_exists()
+    public async Task Should_return_not_found_when_no_orders_exist()
     {
+        const int pageNumber = 4;
+        const int pageSize = 2;
+
+        var orders = new OrderBuilder()
+            .WithOneItem()
+            .Build(2)
+            .ToList();
+
         await using var application = new ShopApi();
         var client = application.CreateClient();
-        
-        var response = await client.GetAsync("orders/1");
-        
+
+        using var arrangeScope = application.Services.CreateScope();
+        await using var arrangeDbContext = arrangeScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await arrangeDbContext.Database.EnsureCreatedAsync();
+
+        arrangeDbContext.Orders.AddRange(orders);
+        await arrangeDbContext.SaveChangesAsync();
+
+        var response = await client.GetAsync($"orders?pageNumber={pageNumber}&pageSize={pageSize}");
+
         var responseContent = JToken.Parse(await response.Content.ReadAsStringAsync());
 
         var expectedContent = JToken.Parse(@"{
             ""type"": ""https://tools.ietf.org/html/rfc7231#section-6.5.4"",
             ""title"": ""Not Found"",
             ""status"": 404,
-            ""detail"": ""Order not found""
+            ""detail"": ""No orders found""
         }");
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         responseContent.Should().BeEquivalentTo(expectedContent);
     }

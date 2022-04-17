@@ -21,6 +21,12 @@ public sealed class OrderBuilder : AutoFaker<Order>
         return this;
     }
 
+    public OrderBuilder WithOneItem()
+    {
+        RuleFor(x => x.Items, f => new ItemBuilder().Build(1));
+        return this;
+    }
+
     public Order Build() => Generate();
 
     public IEnumerable<Order> Build(int count) => Generate(count);

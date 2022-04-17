@@ -10,11 +10,37 @@ namespace Shop.Api.HttpIn;
 using Core.Exceptions;
 using Core.Models;
 using Core.Queries;
+using Microsoft.AspNetCore.Mvc;
 
 public static class Endpoints
 {
     public static IEndpointRouteBuilder MapOrdersEndpoints(this IEndpointRouteBuilder endpoints)
     {
+        endpoints
+            .MapGet("/orders/{id}", async (int id, IMediator mediator) =>
+            {
+                var query = new GetOrderById(id);
+                var order = await mediator.Send(query);
+                return order is null
+                    ? Results.Problem("Order not found", statusCode: StatusCodes.Status404NotFound)
+                    : Results.Ok(new SuccessResponse<OrderResponse>(new OrderResponse(order)));
+            })
+            .WithName("get-order")
+            .Produces(StatusCodes.Status200OK, typeof(OrderResponse))
+            .ProducesProblem(StatusCodes.Status404NotFound);
+        
+        endpoints
+            .MapGet("/orders", async ([FromQuery]int pageNumber, [FromQuery]int pageSize, IMediator mediator) =>
+            {
+                var query = new GetOrders(pageNumber, pageSize);
+                var orders = (await mediator.Send(query)).ToList();
+                return !orders.Any()
+                    ? Results.Problem("No orders found", statusCode: StatusCodes.Status404NotFound)
+                    : Results.Ok(new SuccessResponse<OrdersResponse>(new OrdersResponse(orders)));
+            })
+            .Produces(StatusCodes.Status200OK, typeof(OrdersResponse))
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         endpoints
             .MapPost("/orders", async (CreateOrderRequest request,
                 IValidator<CreateOrderRequest> validator,
@@ -34,19 +60,6 @@ public static class Endpoints
             })
             .Produces(StatusCodes.Status201Created)
             .ProducesValidationProblem();
-
-        endpoints
-            .MapGet("/orders/{id}", async (int id, IMediator mediator) =>
-            {
-                var query = new GetOrderById(id);
-                var order = await mediator.Send(query);
-                return order is null
-                    ? Results.Problem("Order not found", statusCode: StatusCodes.Status404NotFound)
-                    : Results.Ok(new SuccessResponse<OrderResponse>(new OrderResponse(order)));
-            })
-            .WithName("get-order")
-            .Produces(StatusCodes.Status200OK, typeof(Order))
-            .ProducesProblem(StatusCodes.Status404NotFound);
 
         endpoints
             .MapPut("/orders/{id}/deliveryAddress", async (int id,
@@ -78,7 +91,7 @@ public static class Endpoints
             .Produces(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
-        
+
         endpoints
             .MapPut("/orders/{id}/items", async (int id,
                 UpdateOrderItemsRequest request,

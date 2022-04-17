@@ -18,7 +18,7 @@ public class ShopApi : WebApplicationFactory<Program>
         {
             services.RemoveAll(typeof(DbContextOptions<ShopDbContext>));
             services.AddDbContext<ShopDbContext>(options =>
-                options.UseInMemoryDatabase("Testing", root));
+                options.UseInMemoryDatabase($"ShopDb", root));
         });
 
         return base.CreateHost(builder);
