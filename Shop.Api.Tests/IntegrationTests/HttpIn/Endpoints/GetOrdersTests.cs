@@ -1,12 +1,6 @@
 namespace Shop.Api.Tests.IntegrationTests.HttpIn.Endpoints;
 
-using System.Net;
-using System.Threading.Tasks;
 using Builders.Core.Models;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using Storage;
 
 public class GetOrdersTests
@@ -29,13 +23,12 @@ public class GetOrdersTests
         await using var application = new ShopApi();
         var client = application.CreateClient();
 
-        using var scope = application.Services.CreateScope();
-        var provider = scope.ServiceProvider;
-        await using var dbContext = provider.GetRequiredService<ShopDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
+        using var arrangeScope = application.Services.CreateScope();
+        await using var arrangeDbContext = arrangeScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await arrangeDbContext.Database.EnsureCreatedAsync();
 
-        dbContext.Orders.Add(order);
-        await dbContext.SaveChangesAsync();
+        arrangeDbContext.Orders.Add(order);
+        await arrangeDbContext.SaveChangesAsync();
 
         var response = await client.GetAsync($"orders/{order.Id}");
 
@@ -82,5 +75,6 @@ public class GetOrdersTests
         }");
         
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        responseContent.Should().BeEquivalentTo(expectedContent);
     }
 }

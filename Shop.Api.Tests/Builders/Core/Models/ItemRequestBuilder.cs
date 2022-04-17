@@ -1,8 +1,6 @@
 namespace Shop.Api.Tests.Builders.Core.Models;
 
-using System.Collections.Generic;
 using Api.Core.Models;
-using AutoBogus;
 
 public sealed class ItemBuilder : AutoFaker<Item>
 {

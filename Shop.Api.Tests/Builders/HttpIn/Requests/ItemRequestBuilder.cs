@@ -1,8 +1,6 @@
 namespace Shop.Api.Tests.Builders.HttpIn.Requests;
 
-using System.Collections.Generic;
 using Api.HttpIn.Requests;
-using AutoBogus;
 
 public sealed class ItemRequestBuilder : AutoFaker<ItemRequest>
 {

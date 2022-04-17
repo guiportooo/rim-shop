@@ -1,15 +1,9 @@
 namespace Shop.Api.Tests.UnitTests.Core.Commands;
 
-using System.Threading.Tasks;
 using Api.Core.Commands;
 using Api.Core.Models;
 using Api.Core.Repositories;
-using AutoMapper;
 using Builders.Core.Commands;
-using FluentAssertions;
-using Moq;
-using Moq.AutoMock;
-using NUnit.Framework;
 
 public class CreateOrderTests
 {

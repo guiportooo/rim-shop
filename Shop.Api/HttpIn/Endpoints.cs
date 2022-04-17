@@ -7,6 +7,7 @@ using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace Shop.Api.HttpIn;
 
+using Core.Exceptions;
 using Core.Models;
 using Core.Queries;
 
@@ -45,6 +46,37 @@ public static class Endpoints
             })
             .WithName("get-order")
             .Produces(StatusCodes.Status200OK, typeof(Order))
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        endpoints
+            .MapPut("/orders/{id}/deliveryAddress", async (int id,
+                UpdateOrderDeliveryAddressRequest request,
+                IValidator<UpdateOrderDeliveryAddressRequest> validator,
+                IMediator mediator,
+                IMapper mapper) =>
+            {
+                var result = await validator.ValidateAsync(request);
+
+                if (!result.IsValid)
+                {
+                    return Results.ValidationProblem(result.ToDictionary());
+                }
+
+                var deliveryAddress = mapper.Map<DeliveryAddress>(request.DeliveryAddress);
+                var command = new UpdateOrderDeliveryAddress(id, deliveryAddress);
+
+                try
+                {
+                    await mediator.Send(command);
+                    return Results.Ok();
+                }
+                catch (OrderNotFoundException e)
+                {
+                    return Results.Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
+                }
+            })
+            .Produces(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         return endpoints;

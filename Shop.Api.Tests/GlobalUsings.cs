@@ -1,0 +1,17 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Net;
+global using System.Net.Http;
+global using System.Text;
+global using System.Text.Json;
+global using System.Threading.Tasks;
+global using AutoBogus;
+global using AutoMapper;
+global using FluentAssertions;
+global using FluentAssertions.Json;
+global using Moq;
+global using Moq.AutoMock;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.DependencyInjection;
+global using Newtonsoft.Json.Linq;
+global using NUnit.Framework;

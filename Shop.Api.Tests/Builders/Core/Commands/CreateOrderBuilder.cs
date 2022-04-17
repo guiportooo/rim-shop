@@ -1,9 +1,7 @@
 namespace Shop.Api.Tests.Builders.Core.Commands;
 
-using System.Collections.Generic;
 using Api.Core.Commands;
 using Api.Core.Models;
-using AutoBogus;
 
 public sealed class CreateOrderBuilder : AutoFaker<CreateOrder>
 {

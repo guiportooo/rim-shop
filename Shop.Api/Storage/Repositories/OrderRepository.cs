@@ -15,6 +15,12 @@ public class OrderRepository : IOrderRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public Task Update(Order order)
+    {
+        _dbContext.Orders.Update(order);
+        return _dbContext.SaveChangesAsync();
+    }
+
     public async Task<Order?> Get(int id) => await _dbContext
         .Orders
         .Include(x => x.DeliveryAddress)

@@ -1,18 +1,7 @@
 namespace Shop.Api.Tests.IntegrationTests.HttpIn.Endpoints;
 
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Builders.HttpIn.Requests;
 using Core.Models;
-using FluentAssertions;
-using FluentAssertions.Json;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
-using NUnit.Framework;
 using Storage;
 
 public class CreateOrdersTests
@@ -42,12 +31,11 @@ public class CreateOrdersTests
 
         var response = await client.PostAsync("orders", requestContent);
 
-        using var scope = application.Services.CreateScope();
-        var provider = scope.ServiceProvider;
-        await using var dbContext = provider.GetRequiredService<ShopDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
+        using var assertScope = application.Services.CreateScope();
+        await using var assertDbContext = assertScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await assertDbContext.Database.EnsureCreatedAsync();
 
-        var createdOrder = await dbContext
+        var createdOrder = await assertDbContext
             .Orders
             .Include(x => x.DeliveryAddress)
             .Include(x => x.Items)
