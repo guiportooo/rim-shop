@@ -24,4 +24,10 @@
       <ProjectReference Include="..\Shop.Api\Shop.Api.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Builders\Orders" />
+      <Folder Include="IntegrationTests\Orders" />
+      <Folder Include="UnitTests\Orders" />
+    </ItemGroup>
+
 </Project>

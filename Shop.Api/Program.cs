@@ -1,5 +1,5 @@
-using Shop.Api.HttpIn;
-using Shop.Api.Storage;
+using Shop.Api.Orders.HttpIn;
+using Shop.Api.Shared.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +26,9 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-public partial class Program
+namespace Shop.Api
 {
+    public partial class Program
+    {
+    }
 }
