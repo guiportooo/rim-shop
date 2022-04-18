@@ -11,19 +11,38 @@ public class CreateOrdersTests
     [Test]
     public async Task Should_create_accepted_order_and_return_created()
     {
+        var productCode1 = Guid.NewGuid();
+        var productCode2 = Guid.NewGuid();
+        const int itemQuantity1 = 15;
+        const int itemQuantity2 = 7;
+        const int productQuantity1 = 20;
+        const int productQuantity2 = 10;
+
         var deliveryAddress = new DeliveryAddressRequestBuilder().Build();
 
         var items = new[]
         {
-            new ItemRequestBuilder().Build(),
-            new ItemRequestBuilder().Build()
+            new ItemRequestBuilder()
+                .WithProductCode(productCode1)
+                .WithQuantity(itemQuantity1)
+                .Build(),
+            new ItemRequestBuilder()
+                .WithProductCode(productCode2)
+                .WithQuantity(itemQuantity2)
+                .Build()
         };
 
-        var products = items
-            .Select(x => new ProductBuilder()
-                .WithCode(x.ProductCode)
-                .WithStock(x.Quantity)
-                .Build());
+        var products = new[]
+        {
+            new ProductBuilder()
+                .WithCode(productCode1)
+                .WithStock(productQuantity1)
+                .Build(),
+            new ProductBuilder()
+                .WithCode(productCode2)
+                .WithStock(productQuantity2)
+                .Build()
+        };
 
         await using var application = new ShopApi();
         var client = application.CreateClient();
@@ -69,6 +88,19 @@ public class CreateOrdersTests
             }
         };
 
+        var productsAfterOrder = assertDbContext.Products.ToList();
+
+        var expectedProducts = new[]
+        {
+            new ProductBuilder()
+                .WithCode(productCode1)
+                .WithStock(5)
+                .Build(),
+            new ProductBuilder()
+                .WithCode(productCode2)
+                .WithStock(3)
+                .Build()
+        };
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         response.Headers.Location.Should().Be($"http://localhost/orders/{createdOrder.Id}");
         createdOrder.Should().BeEquivalentTo(expectedCreatedOrder, opt => opt
@@ -76,24 +108,44 @@ public class CreateOrdersTests
             .Excluding(x => x.DeliveryAddress.Id)
             .Using<Item>(ctx => ctx.Subject.Should().BeEquivalentTo(ctx.Expectation, o => o.Excluding(x => x.Id)))
             .WhenTypeIs<Item>());
+        productsAfterOrder.Should().BeEquivalentTo(expectedProducts, opt => opt.Excluding(x => x.Id));
     }
 
     [Test]
     public async Task Should_create_rejected_order_and_return_created()
     {
+        var productCode1 = Guid.NewGuid();
+        var productCode2 = Guid.NewGuid();
+        const int itemQuantity1 = 20;
+        const int itemQuantity2 = 10;
+        const int productQuantity1 = 19;
+        const int productQuantity2 = 10;
+
         var deliveryAddress = new DeliveryAddressRequestBuilder().Build();
 
         var items = new[]
         {
-            new ItemRequestBuilder().Build(),
-            new ItemRequestBuilder().Build()
+            new ItemRequestBuilder()
+                .WithProductCode(productCode1)
+                .WithQuantity(itemQuantity1)
+                .Build(),
+            new ItemRequestBuilder()
+                .WithProductCode(productCode2)
+                .WithQuantity(itemQuantity2)
+                .Build()
         };
 
-        var products = items
-            .Select(x => new ProductBuilder()
-                .WithCode(x.ProductCode)
-                .WithStock(x.Quantity - 1)
-                .Build());
+        var products = new[]
+        {
+            new ProductBuilder()
+                .WithCode(productCode1)
+                .WithStock(productQuantity1)
+                .Build(),
+            new ProductBuilder()
+                .WithCode(productCode2)
+                .WithStock(productQuantity2)
+                .Build()
+        };
 
         await using var application = new ShopApi();
         var client = application.CreateClient();
@@ -134,10 +186,12 @@ public class CreateOrdersTests
                 request.DeliveryAddress.PostCode),
             Items = new[]
             {
-                new Item(items[0].ProductCode, items[0].Quantity),
-                new Item(items[1].ProductCode, items[1].Quantity)
+                new Item(productCode1, itemQuantity1),
+                new Item(productCode2, itemQuantity2)
             }
         };
+
+        var productsAfterOrder = assertDbContext.Products.ToList();
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         response.Headers.Location.Should().Be($"http://localhost/orders/{createdOrder.Id}");
@@ -146,6 +200,7 @@ public class CreateOrdersTests
             .Excluding(x => x.DeliveryAddress.Id)
             .Using<Item>(ctx => ctx.Subject.Should().BeEquivalentTo(ctx.Expectation, o => o.Excluding(x => x.Id)))
             .WhenTypeIs<Item>());
+        productsAfterOrder.Should().BeEquivalentTo(products, opt => opt.Excluding(x => x.Id));
     }
 
     [Test]

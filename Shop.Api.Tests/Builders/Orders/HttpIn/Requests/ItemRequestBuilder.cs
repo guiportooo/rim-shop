@@ -14,7 +14,13 @@ public sealed class ItemRequestBuilder : AutoFaker<ItemRequest>
         RuleFor(x => x.Quantity, quantity);
         return this;
     }
-    
+
+    public ItemRequestBuilder WithProductCode(Guid productCode)
+    {
+        RuleFor(x => x.ProductCode, productCode);
+        return this;
+    }
+
     public ItemRequest Build() => Generate();
     
     public IEnumerable<ItemRequest> Build(int count) => Generate(count);

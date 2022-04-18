@@ -14,12 +14,14 @@ public class ShopApi : WebApplicationFactory<Program>
     {
         var root = new InMemoryDatabaseRoot();
 
-        builder.ConfigureServices(services =>
-        {
-            services.RemoveAll(typeof(DbContextOptions<ShopDbContext>));
-            services.AddDbContext<ShopDbContext>(options =>
-                options.UseInMemoryDatabase($"ShopDb", root));
-        });
+        builder
+            .ConfigureServices(services =>
+            {
+                services.RemoveAll(typeof(DbContextOptions<ShopDbContext>));
+                services.AddDbContext<ShopDbContext>(options =>
+                    options.UseInMemoryDatabase($"ShopDb", root));
+            })
+            .UseEnvironment("Test");
 
         return base.CreateHost(builder);
     }

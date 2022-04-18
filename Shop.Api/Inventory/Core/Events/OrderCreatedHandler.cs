@@ -14,6 +14,13 @@ public class OrderCreatedHandler : INotificationHandler<OrderCreated>
         _mediator = mediator;
     }
 
+    /*
+     * This handler is called when an order is created.
+     * First, it sums the quantity of possible duplicated products inside the order items.
+     * Then it rejects the order if there are products that don't exist in the inventory,
+     * or if any of the products don't have enough stock.
+     * Otherwise, it updates the stock of the products and accepts the order.
+     */
     public async Task Handle(OrderCreated @event, CancellationToken cancellationToken)
     {
         var (orderId, orderItems) = @event;
@@ -29,7 +36,11 @@ public class OrderCreatedHandler : INotificationHandler<OrderCreated>
 
         var products = (await _repository.Get(items.Select(x => x.ProductCode))).ToList();
 
-        if (products.Count < items.Count)
+        var orderHasMissingProducts = products.Count != items.Count;
+        var orderHasProductsOutOfStock = products
+            .Any(x => x.Stock < items.Single(y => y.ProductCode == x.Code).Quantity);
+        
+        if (orderHasMissingProducts || orderHasProductsOutOfStock)
         {
             await _mediator.Publish(new OrderRejected(orderId), cancellationToken);
             return;
@@ -37,23 +48,10 @@ public class OrderCreatedHandler : INotificationHandler<OrderCreated>
 
         foreach (var product in products)
         {
-            var quantity = items.FirstOrDefault(x => x.ProductCode == product.Code)?.Quantity;
-
-            if (quantity is null)
-            {
-                continue;
-            }
-
-            if (product.Stock < quantity)
-            {
-                await _mediator.Publish(new OrderRejected(orderId), cancellationToken);
-                return;
-            }
-
-            product.Stock -= quantity.Value;
+            var quantity = items.First(x => x.ProductCode == product.Code).Quantity;
+            product.Stock -= quantity;
             await _repository.Update(product);
         }
-
 
         await _mediator.Publish(new OrderAccepted(orderId), cancellationToken);
     }
