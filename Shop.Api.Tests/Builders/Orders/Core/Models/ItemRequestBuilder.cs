@@ -9,6 +9,18 @@ public sealed class ItemBuilder : AutoFaker<Item>
         RuleFor(x => x.Id, 0);
         RuleFor(x => x.Quantity, 10);
     }
+
+    public ItemBuilder WithProductCode(Guid productCode)
+    {
+        RuleFor(x => x.ProductCode, productCode);
+        return this;
+    }
+    
+    public ItemBuilder WithQuantity(int quantity)
+    {
+        RuleFor(x => x.Quantity, quantity);
+        return this;
+    }
     
     public Item Build() => Generate();
     

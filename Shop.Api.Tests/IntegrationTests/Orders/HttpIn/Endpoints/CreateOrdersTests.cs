@@ -1,14 +1,15 @@
 namespace Shop.Api.Tests.IntegrationTests.Orders.HttpIn.Endpoints;
 
+using System.Linq;
 using Api.Orders.Core.Models;
+using Builders.Inventory.Core.Models;
 using Builders.Orders.HttpIn.Requests;
 using Shared.Storage;
-using Storage;
 
 public class CreateOrdersTests
 {
     [Test]
-    public async Task Should_create_order_and_return_created()
+    public async Task Should_create_accepted_order_and_return_created()
     {
         var deliveryAddress = new DeliveryAddressRequestBuilder().Build();
 
@@ -18,6 +19,22 @@ public class CreateOrdersTests
             new ItemRequestBuilder().Build()
         };
 
+        var products = items
+            .Select(x => new ProductBuilder()
+                .WithCode(x.ProductCode)
+                .WithStock(x.Quantity)
+                .Build());
+
+        await using var application = new ShopApi();
+        var client = application.CreateClient();
+
+        using var arrangeScope = application.Services.CreateScope();
+        await using var arrangeDbContext = arrangeScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await arrangeDbContext.Database.EnsureCreatedAsync();
+
+        arrangeDbContext.Products.AddRange(products);
+        await arrangeDbContext.SaveChangesAsync();
+
         var request = new CreateOrderRequestBuilder()
             .WithDeliveryAddress(deliveryAddress)
             .WithItems(items)
@@ -26,9 +43,6 @@ public class CreateOrdersTests
         var requestContent = new StringContent(JsonSerializer.Serialize(request),
             Encoding.UTF8,
             "application/json");
-
-        await using var application = new ShopApi();
-        var client = application.CreateClient();
 
         var response = await client.PostAsync("orders", requestContent);
 
@@ -44,7 +58,77 @@ public class CreateOrdersTests
 
         var expectedCreatedOrder = new Order
         {
-            Status = OrderStatus.Pending,
+            Status = OrderStatus.Accepted,
+            DeliveryAddress = new DeliveryAddress(request.DeliveryAddress.Street,
+                request.DeliveryAddress.City,
+                request.DeliveryAddress.PostCode),
+            Items = new[]
+            {
+                new Item(items[0].ProductCode, items[0].Quantity),
+                new Item(items[1].ProductCode, items[1].Quantity)
+            }
+        };
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.Headers.Location.Should().Be($"http://localhost/orders/{createdOrder.Id}");
+        createdOrder.Should().BeEquivalentTo(expectedCreatedOrder, opt => opt
+            .Excluding(x => x.Id)
+            .Excluding(x => x.DeliveryAddress.Id)
+            .Using<Item>(ctx => ctx.Subject.Should().BeEquivalentTo(ctx.Expectation, o => o.Excluding(x => x.Id)))
+            .WhenTypeIs<Item>());
+    }
+
+    [Test]
+    public async Task Should_create_rejected_order_and_return_created()
+    {
+        var deliveryAddress = new DeliveryAddressRequestBuilder().Build();
+
+        var items = new[]
+        {
+            new ItemRequestBuilder().Build(),
+            new ItemRequestBuilder().Build()
+        };
+
+        var products = items
+            .Select(x => new ProductBuilder()
+                .WithCode(x.ProductCode)
+                .WithStock(x.Quantity - 1)
+                .Build());
+
+        await using var application = new ShopApi();
+        var client = application.CreateClient();
+
+        using var arrangeScope = application.Services.CreateScope();
+        await using var arrangeDbContext = arrangeScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await arrangeDbContext.Database.EnsureCreatedAsync();
+
+        arrangeDbContext.Products.AddRange(products);
+        await arrangeDbContext.SaveChangesAsync();
+
+        var request = new CreateOrderRequestBuilder()
+            .WithDeliveryAddress(deliveryAddress)
+            .WithItems(items)
+            .Build();
+
+        var requestContent = new StringContent(JsonSerializer.Serialize(request),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("orders", requestContent);
+
+        using var assertScope = application.Services.CreateScope();
+        await using var assertDbContext = assertScope.ServiceProvider.GetRequiredService<ShopDbContext>();
+        await assertDbContext.Database.EnsureCreatedAsync();
+
+        var createdOrder = await assertDbContext
+            .Orders
+            .Include(x => x.DeliveryAddress)
+            .Include(x => x.Items)
+            .FirstAsync();
+
+        var expectedCreatedOrder = new Order
+        {
+            Status = OrderStatus.Rejected,
             DeliveryAddress = new DeliveryAddress(request.DeliveryAddress.Street,
                 request.DeliveryAddress.City,
                 request.DeliveryAddress.PostCode),
@@ -70,7 +154,7 @@ public class CreateOrdersTests
         var deliveryAddress = new DeliveryAddressRequestBuilder()
             .WithStreet(string.Empty)
             .Build();
-        
+
         var items = new[]
         {
             new ItemRequestBuilder()
@@ -82,7 +166,7 @@ public class CreateOrdersTests
             .WithDeliveryAddress(deliveryAddress)
             .WithItems(items)
             .Build();
-        
+
         var requestContent = new StringContent(JsonSerializer.Serialize(request),
             Encoding.UTF8,
             "application/json");
@@ -105,7 +189,7 @@ public class CreateOrdersTests
                     ""'Quantity' must be greater than '0'.""]
             }
         }");
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         responseContent.Should().BeEquivalentTo(expectedContent);
     }

@@ -9,8 +9,8 @@ using Builders.Orders.Core.Models;
 
 public class CancelOrderTests
 {
-    private AutoMocker _mocker;
-    private CancelOrderHandler _handler;
+    private AutoMocker _mocker = null!;
+    private CancelOrderHandler _handler = null!;
 
     [SetUp]
     public void Setup()

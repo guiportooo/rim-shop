@@ -1,6 +1,5 @@
 namespace Shop.Api.Orders.Storage.Repositories;
 
-using Api.Storage;
 using Core.Models;
 using Core.Repositories;
 using Shared.Storage;

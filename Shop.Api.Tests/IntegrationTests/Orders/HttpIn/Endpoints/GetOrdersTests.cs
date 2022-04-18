@@ -3,7 +3,6 @@ namespace Shop.Api.Tests.IntegrationTests.Orders.HttpIn.Endpoints;
 using System.Linq;
 using Builders.Orders.Core.Models;
 using Shared.Storage;
-using Storage;
 
 public class GetOrdersTests
 {

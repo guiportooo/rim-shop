@@ -34,6 +34,18 @@ public sealed class OrderBuilder : AutoFaker<Order>
         return this;
     }
 
+    public OrderBuilder Pending()
+    {
+        RuleFor(x => x.Status, OrderStatus.Pending);
+        return this;
+    }
+
+    public OrderBuilder WithStatus(OrderStatus status)
+    {
+        RuleFor(x => x.Status, status);
+        return this;
+    }
+
     public Order Build() => Generate();
 
     public IEnumerable<Order> Build(int count) => Generate(count);

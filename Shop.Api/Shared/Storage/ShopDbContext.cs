@@ -1,5 +1,6 @@
 namespace Shop.Api.Shared.Storage;
 
+using Inventory.Core.Models;
 using Orders.Core.Models;
 
 public class ShopDbContext : DbContext
@@ -11,4 +12,5 @@ public class ShopDbContext : DbContext
     }
 
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Product> Products => Set<Product>();
 }

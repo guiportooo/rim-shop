@@ -9,8 +9,8 @@ using Builders.Orders.Core.Models;
 
 public class UpdateOrderDeliveryAddressTests
 {
-    private AutoMocker _mocker;
-    private UpdateOrderDeliveryAddressHandler _handler;
+    private AutoMocker _mocker = null!;
+    private UpdateOrderDeliveryAddressHandler _handler = null!;
 
     [SetUp]
     public void Setup()

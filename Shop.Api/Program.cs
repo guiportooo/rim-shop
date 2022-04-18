@@ -24,6 +24,8 @@ if (app.Environment.IsDevelopment())
         .UseSwaggerUI();
 }
 
+await app.SeedStorage();
+
 app.Run();
 
 namespace Shop.Api
