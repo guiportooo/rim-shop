@@ -49,7 +49,7 @@ public class GetOrderTests
                 'items': [
                     {{
                         'id': {items[0].Id},
-                        'productId': '{items[0].ProductId}',
+                        'productCode': '{items[0].ProductCode}',
                         'quantity': {items[0].Quantity}
                     }}]
                 }}

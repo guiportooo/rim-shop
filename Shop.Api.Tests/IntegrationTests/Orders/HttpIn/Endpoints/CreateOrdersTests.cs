@@ -50,8 +50,8 @@ public class CreateOrdersTests
                 request.DeliveryAddress.PostCode),
             Items = new[]
             {
-                new Item(items[0].ProductId, items[0].Quantity),
-                new Item(items[1].ProductId, items[1].Quantity)
+                new Item(items[0].ProductCode, items[0].Quantity),
+                new Item(items[1].ProductCode, items[1].Quantity)
             }
         };
 

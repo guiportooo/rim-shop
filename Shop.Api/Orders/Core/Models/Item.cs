@@ -2,13 +2,13 @@ namespace Shop.Api.Orders.Core.Models;
 
 public class Item
 {
-    public Item(Guid productId, int quantity)
+    public Item(Guid productCode, int quantity)
     {
-        ProductId = productId;
+        ProductCode = productCode;
         Quantity = quantity;
     }
 
     public int Id { get; set; }
-    public Guid ProductId { get; set; }
+    public Guid ProductCode { get; set; }
     public int Quantity { get; set; }
 }

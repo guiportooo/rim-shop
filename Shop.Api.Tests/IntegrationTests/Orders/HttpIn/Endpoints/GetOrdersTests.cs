@@ -64,7 +64,7 @@ public class GetOrdersTests
                 'items': [
                     {{
                         'id': {firstItem.Id},
-                        'productId': '{firstItem.ProductId}',
+                        'productCode': '{firstItem.ProductCode}',
                         'quantity': {firstItem.Quantity}
                     }}]
                 }}, {{
@@ -79,7 +79,7 @@ public class GetOrdersTests
                 'items': [
                     {{
                         'id': {secondItem.Id},
-                        'productId': '{secondItem.ProductId}',
+                        'productCode': '{secondItem.ProductCode}',
                         'quantity': {secondItem.Quantity}
                     }}]
                 }}]
