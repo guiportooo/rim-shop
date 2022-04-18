@@ -1,0 +1,17 @@
+version: '3.4'
+services:
+  shop-api:
+    container_name: shop-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=pass@123
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    build:
+      context: Shop.Api
+      dockerfile: Dockerfile
+    ports:
+      - 7250:443
+      - 5103:80

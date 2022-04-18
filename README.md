@@ -37,12 +37,39 @@
 ## Dependencies
 - [.NET SDK 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 - [EF Tools](https://docs.microsoft.com/en-us/ef/core/cli/dotnet)
+- [Docker](https://www.docker.com)
+
+## Running on Docker
+
+### Configure dev certificate for Chat API HTTPS redirection
+
+Change the certificate password on the **docker-compose.yaml** file to match you local dev certificate's password:
+
+The password can be configured replacing `[your_password_here]` with your password on the **line 8** of the docker-compose.yaml:
+
+```
+ASPNETCORE_Kestrel__Certificates__Default__Password=[your_password_here]
+```
+
+If you don't know your local dev certificate's password, you can generate a new one running:
+
+```bash
+dotnet dev-certs https --clean
+dotnet dev-certs https -ep ${HOME}/.aspnet/https/aspnetapp.pfx -p [your_password_here]
+dotnet dev-certs https --trust
+```
+
+### Run with Docker Compose
+
+1. Run the command `docker-compose build`
+2. Run the command `docker-compose up`
+3. The Shop API will be available at _https://localhost:7250/swagger/index.html_
 
 ## Running locally
 
 1. Go to `/Shop.Api` directory
 2. Run the command `dotnet run`
-3. Open the Swagger UI on the browser (`https://localhost:7250/swagger`)
+3. The Shop API will be available at _https://localhost:7250/swagger/index.html_
 
 Alternatively, you can run the Shop.Api project on your favorite IDE
 
